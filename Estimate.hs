@@ -4,17 +4,22 @@ module Estimate where
 
 newtype Task = Task String deriving Show
 newtype Time = Time Float deriving (Eq, Show, Num, Fractional, Ord)
-data Estimate = Estimate Task Time Time Time deriving Show
-data Eta = Eta Task Time Time
+data Estimate = Estimate {description :: Task, 
+                          best :: Time,
+                          normal :: Time,
+                          worst :: Time}
+              deriving Show
+data Eta = Eta {task :: Task,
+                estimation :: Time,
+                delta :: Time}
 
 instance Show Eta where
-    show (Eta t eta delta) = "ETA of " ++ show t ++ ": " ++ show eta ++ " +/- " ++ show delta
+    show (Eta t e d) = "ETA of " ++ show t ++ ": " ++ show e ++ " +/- " ++ show d
 
 estimate :: Estimate -> Eta
-estimate (Estimate t best normal worst) = (uncurry (Eta t)) (calcEstimate best normal worst)
-
-calcEstimate :: Time -> Time -> Time -> (Time, Time)
-calcEstimate best normal worst = (calcEta best normal worst, 
-                                  calcDelta best normal)
-    where calcEta a m b = (a + 4 * m + b) / 6
-          calcDelta a b = (b - a) / 6
+estimate (Estimate {description = t,
+                    best = a,
+                    normal = m,
+                    worst = b}) = (Eta t e d) 
+    where e = (a + 4 * m + b) / 6
+          d = (b - a) / 6
